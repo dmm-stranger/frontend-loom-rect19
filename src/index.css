@@ -1,1 +1,56 @@
 @import "tailwindcss";
+
+:root {
+  --bg:            #08080e;
+  --bg-card:       #0f0f18;
+  --bg-elevated:   #14141f;
+  --border:        #1c1c2e;
+  --border-hi:     #2a2a40;
+
+  --accent:        #00cfff;
+  --accent-dim:    #00cfff18;
+  --accent-border: #00cfff33;
+
+  --success:       #00e599;
+  --danger:        #ff4d6a;
+  --gold:          #f59e0b;
+
+  --text:          #eaeaf4;
+  --text-sub:      #a0a0c0;
+  --text-muted:    #5a5a78;
+
+  --font-sans:     'Outfit', 'Segoe UI', sans-serif;
+  --font-mono:     'DM Mono', 'Courier New', monospace;
+
+  --radius-sm:     6px;
+  --radius-md:     10px;
+  --radius-lg:     14px;
+
+  --header-h:      64px;
+  --sidebar-w:     220px;
+  --max-w:         1320px;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+::-webkit-scrollbar       { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--bg-card); }
+::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 3px; }
+
+.container {
+  max-width: var(--max-w);
+  margin-inline: auto;
+  padding-inline: 28px;
+}
