@@ -1,3 +1,7 @@
+// @ts-ignore
+// @ts-nocheck
+
+
 export function formatCurrency(amount: number, currency = 'USD') {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',

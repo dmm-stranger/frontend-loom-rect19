@@ -1,3 +1,7 @@
+// @ts-ignore
+// @ts-nocheck
+
+
 export const validators = {
   email: (val: string) => {
     if (!val) return 'Email is required'

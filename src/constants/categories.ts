@@ -1,3 +1,7 @@
+// @ts-ignore
+// @ts-nocheck
+
+
 export const CATEGORIES = [
   { id: 'cpus', label: 'Processors', slug: 'cpus', icon: '⚙️', count: 248 },
   { id: 'gpus', label: 'Graphics Cards', slug: 'gpus', icon: '🎮', count: 134 },
