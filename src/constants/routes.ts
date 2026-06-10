@@ -1,4 +1,4 @@
-
+export const NAV_LINKS = [ 'Laptops', 'GPUs', 'Monitors', 'CPUs', 'Storage', 'Deals' ]
 
 export const ROUTES = {
   HOME: '/',

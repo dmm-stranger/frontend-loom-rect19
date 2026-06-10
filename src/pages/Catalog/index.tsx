@@ -1,8 +1,9 @@
+import { useState, useEffect } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import Sidebar from '@/components/layout/Sidebar'
 import ProductGrid from '@/components/product/ProductGrid'
-import { setSortBy, selectSortBy, selectFilters } from '@/features/products/productsSlice'
+import { setSortBy, selectSortBy } from '@/features/products/productsSlice'
 import { openFilterDrawer, selectFilterDrawerOpen, closeFilterDrawer } from '@/features/ui/uiSlice'
 import type { AppDispatch } from '@/app/store'
 
@@ -30,6 +31,19 @@ export default function CatalogPage() {
   const filterDrawerOpen = useSelector(selectFilterDrawerOpen)
   const searchQuery = searchParams.get('search') || ''
 
+  const [ isDesktop, setIsDesktop ] = useState(window.innerWidth >= 1280)
+
+  useEffect(() => {
+    const handle = () => setIsDesktop(window.innerWidth >= 1280)
+    window.addEventListener('resize', handle)
+    return () => window.removeEventListener('resize', handle)
+  }, [])
+
+  // Close filter drawer when page loads
+  useEffect(() => {
+    dispatch(closeFilterDrawer())
+  }, [ dispatch ])
+
   return (
     <div style={{ maxWidth: 'var(--max-w)', margin: '0 auto', padding: '32px 28px' }}>
 
@@ -47,12 +61,24 @@ export default function CatalogPage() {
             {MOCK_PRODUCTS.length} products
           </p>
         </div>
+
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <button onClick={() => dispatch(openFilterDrawer())} style={{ background: 'var(--accent-dim)', border: '1px solid var(--accent-border)', color: 'var(--accent)', borderRadius: 'var(--radius-md)', padding: '7px 12px', fontFamily: 'var(--font-mono)', fontSize: 11, cursor: 'pointer' }}>
-            ⚙ FILTERS
-          </button>
+          {/* Filter button — mobile/tablet only */}
+          {!isDesktop && (
+            <button
+              onClick={() => dispatch(openFilterDrawer())}
+              style={{ background: 'var(--accent-dim)', border: '1px solid var(--accent-border)', color: 'var(--accent)', borderRadius: 'var(--radius-md)', padding: '7px 12px', fontFamily: 'var(--font-mono)', fontSize: 11, cursor: 'pointer' }}
+            >
+              ⚙ FILTERS
+            </button>
+          )}
+
           {SORT_OPTIONS.map(opt => (
-            <button key={opt.value} onClick={() => dispatch(setSortBy(opt.value))} style={{ background: sortBy === opt.value ? 'var(--accent-dim)' : 'transparent', border: `1px solid ${sortBy === opt.value ? 'var(--accent-border)' : 'var(--border)'}`, color: sortBy === opt.value ? 'var(--accent)' : 'var(--text-muted)', borderRadius: 'var(--radius-md)', padding: '7px 12px', fontFamily: 'var(--font-mono)', fontSize: 10, cursor: 'pointer' }}>
+            <button
+              key={opt.value}
+              onClick={() => dispatch(setSortBy(opt.value))}
+              style={{ background: sortBy === opt.value ? 'var(--accent-dim)' : 'transparent', border: `1px solid ${sortBy === opt.value ? 'var(--accent-border)' : 'var(--border)'}`, color: sortBy === opt.value ? 'var(--accent)' : 'var(--text-muted)', borderRadius: 'var(--radius-md)', padding: '7px 12px', fontFamily: 'var(--font-mono)', fontSize: 10, cursor: 'pointer' }}
+            >
               {opt.label}
             </button>
           ))}
@@ -61,9 +87,14 @@ export default function CatalogPage() {
 
       {/* Body */}
       <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
-        <Sidebar />
+
+        {/* Sidebar — desktop only */}
+        {isDesktop && <Sidebar />}
+
+        {/* Product Grid */}
         <div style={{ flex: 1 }}>
           <ProductGrid products={MOCK_PRODUCTS} />
+
           {/* Pagination */}
           <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginTop: 40 }}>
             {[ 1, 2, 3, '…', 8 ].map((p, i) => (
@@ -73,8 +104,10 @@ export default function CatalogPage() {
         </div>
       </div>
 
-      {/* Filter Drawer */}
-      {filterDrawerOpen && <Sidebar asDrawer onClose={() => dispatch(closeFilterDrawer())} />}
+      {/* Filter Drawer — mobile/tablet only */}
+      {filterDrawerOpen && !isDesktop && (
+        <Sidebar asDrawer onClose={() => dispatch(closeFilterDrawer())} />
+      )}
     </div>
   )
 }

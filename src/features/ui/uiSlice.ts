@@ -1,7 +1,3 @@
-// @ts-ignore
-// @ts-nocheck
-
-
 import { createSlice } from '@reduxjs/toolkit'
 
 interface UiState {

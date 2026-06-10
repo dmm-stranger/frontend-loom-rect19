@@ -1,8 +1,18 @@
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { useDispatch } from 'react-redux'
 import { ROUTES } from '@/constants/routes'
 import { CATEGORIES } from '@/constants/categories'
+import { clearFilters } from '@/features/products/productsSlice'
+import type { AppDispatch } from '@/app/store'
 
 export default function HomePage() {
+  const dispatch = useDispatch<AppDispatch>()
+
+  useEffect(() => {
+    dispatch(clearFilters())
+  }, [ dispatch ])
+
   return (
     <div>
       {/* Hero */}
