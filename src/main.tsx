@@ -5,16 +5,23 @@ import { store } from '@/app/store'
 import App from '@/App'
 import './index.css'
 
-const root = document.getElementById('root')
-
-if (!root) {
-  document.body.innerHTML = '<h1 style="color:red">ROOT NOT FOUND</h1>'
-} else {
-  createRoot(root).render(
-    <StrictMode>
-      <Provider store={store}>
-        <App />
-      </Provider>
-    </StrictMode>
-  )
+// Apply theme class to body on startup
+const applyTheme = () => {
+  const theme = store.getState().ui.theme
+  document.body.classList.remove('dark', 'light')
+  document.body.classList.add(theme)
 }
+
+// Apply on load
+applyTheme()
+
+// Apply every time theme changes in Redux
+store.subscribe(applyTheme)
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <Provider store={store}>
+      <App />
+    </Provider>
+  </StrictMode>
+)

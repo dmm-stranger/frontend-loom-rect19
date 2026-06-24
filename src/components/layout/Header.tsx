@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { openCartDrawer, openMobileMenu } from '@/features/ui/uiSlice'
+import { openCartDrawer, openMobileMenu, toggleTheme, selectTheme } from '@/features/ui/uiSlice'
 import { selectCartCount } from '@/features/cart/cartSlice'
 import { selectIsAuth } from '@/features/auth/authSlice'
 import { ROUTES } from '@/constants/routes'
@@ -14,9 +14,13 @@ export default function Header() {
   const navigate = useNavigate()
   const cartCount = useSelector(selectCartCount)
   const isAuth = useSelector(selectIsAuth)
-
+  const theme = useSelector(selectTheme)
   const [ searchVal, setSearchVal ] = useState('')
+
+
   const [ searchFocused, setSearchFocused ] = useState(false)
+
+
   const debouncedSearch = useDebounce(searchVal, 400)
 
   const handleSearch = (e: React.FormEvent) => {
@@ -83,6 +87,18 @@ export default function Header() {
           />
         </form>
 
+        {/* Theme Toggle */}
+        <button
+          onClick={() => dispatch(toggleTheme())}
+          style={{
+            ...iconBtn,
+            fontSize: 16,
+            lineHeight: 1,
+          }}
+          title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+        >
+          {theme === 'dark' ? '☀️' : '🌙'}
+        </button>
         {/* User */}
         <Link to={isAuth ? ROUTES.ACCOUNT : ROUTES.LOGIN} style={{ ...iconBtn, textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>👤</Link>
 

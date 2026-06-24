@@ -1,5 +1,13 @@
 import { createSlice } from '@reduxjs/toolkit'
 
+// Detect system preference on first load
+const getSystemTheme = (): 'dark' | 'light' => {
+  if (typeof window !== 'undefined') {
+    return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
+  }
+  return 'dark'
+}
+
 interface UiState {
   cartDrawerOpen: boolean
   mobileMenuOpen: boolean
@@ -11,7 +19,7 @@ const initialState: UiState = {
   cartDrawerOpen: false,
   mobileMenuOpen: false,
   filterDrawerOpen: false,
-  theme: 'dark',
+  theme: getSystemTheme(),
 }
 
 const uiSlice = createSlice({
