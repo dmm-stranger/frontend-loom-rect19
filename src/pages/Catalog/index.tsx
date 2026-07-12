@@ -40,14 +40,28 @@ export default function CatalogPage() {
   // Current page state
   const [ page, setPage ] = useState(1)
 
-  // RTK Query — fetch real products from Vercel backend
+  // Parse price range string into min/max
+  const getPriceRange = () => {
+    if (!filters.priceRange) return { minPrice: undefined, maxPrice: undefined }
+    const [ min, max ] = filters.priceRange.split('-').map(Number)
+    return {
+      minPrice: min > 0 ? min : undefined,
+      maxPrice: max < 99999 ? max : undefined,
+    }
+  }
+
+  const { minPrice, maxPrice } = getPriceRange()
+
   const { data, isLoading, isError, isFetching } = useGetProductsQuery({
     page,
     perPage: 12,
     sortBy,
-    categorySlug: categorySlug || filters.categorySlug || undefined,
-    brands: filters.brands.length > 0 ? filters.brands : undefined,
-    search: searchQuery || undefined,
+    categorySlug: categorySlug || undefined,
+    search: searchQuery || filters.brands.length > 0
+      ? searchQuery || filters.brands.join(' ')
+      : undefined,
+    minPrice,
+    maxPrice,
     rating: filters.rating || undefined,
   })
 
