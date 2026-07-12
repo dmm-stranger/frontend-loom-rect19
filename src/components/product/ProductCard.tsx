@@ -70,8 +70,17 @@ export default function ProductCard({ product }: { product: Product }) {
       </div>
 
       {/* Image */}
-      <div style={{ height: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 44, background: 'var(--accent-dim)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
-        {product.image}
+      <div style={{ height: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--accent-dim)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', overflow: 'hidden' }}>
+        {product.image.startsWith('http') ? (
+          <img
+            src={product.image}
+            alt={product.name}
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            onError={(e) => { (e.target as HTMLImageElement).src = 'https://placehold.co/400x300?text=No+Image' }}
+          />
+        ) : (
+          <span style={{ fontSize: 44 }}>{product.image}</span>
+        )}
       </div>
 
       {/* Info */}
