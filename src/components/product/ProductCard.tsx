@@ -5,6 +5,7 @@ import { toggleWishlist, selectIsWishlisted } from '@/features/wishlist/wishlist
 import { discountPercent, formatCurrency } from '@/utils/formatCurrency'
 import ProductBadge from '@/components/product/ProductBadge'
 import type { AppDispatch } from '@/app/store'
+import { Link } from 'react-router-dom'
 
 interface Product {
   id: string
@@ -17,6 +18,7 @@ interface Product {
   badge: 'HOT' | 'NEW' | 'SALE' | 'DEAL' | null
   stock: number
   image: string
+  slug?: string   // ← add this line
 }
 
 export default function ProductCard({ product }: { product: Product }) {
@@ -83,11 +85,12 @@ export default function ProductCard({ product }: { product: Product }) {
         )}
       </div>
 
-      {/* Info */}
-      <div>
+
+      {/* Info — clicking name goes to product detail */}
+      <Link to={`/products/${product.slug || product.id}`} style={{ textDecoration: 'none' }}>
         <p style={{ fontSize: 9, color: 'var(--accent)', fontFamily: 'var(--font-mono)', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.1em' }}>{product.category}</p>
         <h3 style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', lineHeight: 1.3 }}>{product.name}</h3>
-      </div>
+      </Link>
 
       {/* Rating */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>

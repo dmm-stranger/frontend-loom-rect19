@@ -11,6 +11,7 @@ interface Product {
   badge: 'HOT' | 'NEW' | 'SALE' | 'DEAL' | null
   stock: number
   image: string
+  slug?: string   // ← add this line
 }
 
 export default function ProductGrid({ products }: { products: Product[] }) {
