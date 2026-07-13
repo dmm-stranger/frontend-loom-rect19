@@ -85,7 +85,6 @@ export default function ProductCard({ product }: { product: Product }) {
         )}
       </div>
 
-
       {/* Info — clicking name goes to product detail */}
       <Link to={`/products/${product.slug || product.id}`} style={{ textDecoration: 'none' }}>
         <p style={{ fontSize: 9, color: 'var(--accent)', fontFamily: 'var(--font-mono)', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.1em' }}>{product.category}</p>
