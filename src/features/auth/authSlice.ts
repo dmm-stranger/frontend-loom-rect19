@@ -15,10 +15,13 @@ interface AuthState {
   error: string | null
 }
 
+// Restore token from localStorage on app load
+const savedToken = localStorage.getItem('loom_token')
+
 const initialState: AuthState = {
   user: null,
-  token: null,
-  status: 'idle',
+  token: savedToken || null,
+  status: savedToken ? 'succeeded' : 'idle',
   error: null,
 }
 
@@ -31,12 +34,16 @@ const authSlice = createSlice({
       state.token = action.payload.token
       state.status = 'succeeded'
       state.error = null
+      // Save token to localStorage so it persists on refresh
+      localStorage.setItem('loom_token', action.payload.token)
     },
     logout: (state) => {
       state.user = null
       state.token = null
       state.status = 'idle'
       state.error = null
+      // Remove token from localStorage on logout
+      localStorage.removeItem('loom_token')
     },
     setAuthError: (state, action: PayloadAction<string>) => {
       state.error = action.payload

@@ -12,10 +12,7 @@ const applyTheme = () => {
   document.body.classList.add(theme)
 }
 
-// Apply on load
 applyTheme()
-
-// Apply every time theme changes in Redux
 store.subscribe(applyTheme)
 
 createRoot(document.getElementById('root')!).render(

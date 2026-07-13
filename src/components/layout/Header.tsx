@@ -3,11 +3,12 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { openCartDrawer, openMobileMenu, toggleTheme, selectTheme } from '@/features/ui/uiSlice'
 import { selectCartCount } from '@/features/cart/cartSlice'
-import { selectIsAuth } from '@/features/auth/authSlice'
+import { selectIsAuth, logout } from '@/features/auth/authSlice'
 import { ROUTES } from '@/constants/routes'
 import { NAV_LINKS } from '@/constants/categories'
 import { useDebounce } from '@/hooks/useDebounce'
 import type { AppDispatch } from '@/app/store'
+
 
 export default function Header() {
   const dispatch = useDispatch<AppDispatch>()
@@ -15,11 +16,10 @@ export default function Header() {
   const cartCount = useSelector(selectCartCount)
   const isAuth = useSelector(selectIsAuth)
   const theme = useSelector(selectTheme)
+
   const [ searchVal, setSearchVal ] = useState('')
-
-
   const [ searchFocused, setSearchFocused ] = useState(false)
-
+  const [ userMenuOpen, setUserMenuOpen ] = useState(false)
 
   const debouncedSearch = useDebounce(searchVal, 400)
 
@@ -99,8 +99,82 @@ export default function Header() {
         >
           {theme === 'dark' ? '☀️' : '🌙'}
         </button>
-        {/* User */}
-        <Link to={isAuth ? ROUTES.ACCOUNT : ROUTES.LOGIN} style={{ ...iconBtn, textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>👤</Link>
+
+        {/* User — with dropdown when logged in */}
+        <div style={{ position: 'relative' }}>
+          <button
+            onClick={() => setUserMenuOpen(v => !v)}
+            style={{ ...iconBtn, fontSize: 16 }}
+          >
+            {isAuth ? '👤' : '🔑'}
+          </button>
+
+          {/* Dropdown */}
+          {userMenuOpen && (
+            <>
+              {/* Backdrop */}
+              <div
+                onClick={() => setUserMenuOpen(false)}
+                style={{ position: 'fixed', inset: 0, zIndex: 10 }}
+              />
+              {/* Menu */}
+              <div style={{
+                position: 'absolute',
+                top: '110%',
+                right: 0,
+                zIndex: 20,
+                background: 'var(--bg-elevated)',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-md)',
+                minWidth: 180,
+                overflow: 'hidden',
+                boxShadow: '0 8px 32px #00000040',
+              }}>
+                {isAuth ? (
+                  <>
+                    <Link
+                      to={ROUTES.ACCOUNT}
+                      onClick={() => setUserMenuOpen(false)}
+                      style={{ display: 'block', padding: '12px 16px', color: 'var(--text)', fontFamily: 'var(--font-sans)', fontSize: 13, textDecoration: 'none', borderBottom: '1px solid var(--border)' }}
+                    >
+                      👤 My Account
+                    </Link>
+                    <Link
+                      to="/account/orders"
+                      onClick={() => setUserMenuOpen(false)}
+                      style={{ display: 'block', padding: '12px 16px', color: 'var(--text)', fontFamily: 'var(--font-sans)', fontSize: 13, textDecoration: 'none', borderBottom: '1px solid var(--border)' }}
+                    >
+                      📦 My Orders
+                    </Link>
+                    <button
+                      onClick={() => { dispatch(logout()); setUserMenuOpen(false) }}
+                      style={{ display: 'block', width: '100%', padding: '12px 16px', color: 'var(--danger)', fontFamily: 'var(--font-sans)', fontSize: 13, textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer' }}
+                    >
+                      🚪 Sign Out
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      to={ROUTES.LOGIN}
+                      onClick={() => setUserMenuOpen(false)}
+                      style={{ display: 'block', padding: '12px 16px', color: 'var(--text)', fontFamily: 'var(--font-sans)', fontSize: 13, textDecoration: 'none', borderBottom: '1px solid var(--border)' }}
+                    >
+                      🔑 Sign In
+                    </Link>
+                    <Link
+                      to={ROUTES.REGISTER}
+                      onClick={() => setUserMenuOpen(false)}
+                      style={{ display: 'block', padding: '12px 16px', color: 'var(--text)', fontFamily: 'var(--font-sans)', fontSize: 13, textDecoration: 'none' }}
+                    >
+                      ✏️ Create Account
+                    </Link>
+                  </>
+                )}
+              </div>
+            </>
+          )}
+        </div>
 
         {/* Cart */}
         <button onClick={() => dispatch(openCartDrawer())} style={{
