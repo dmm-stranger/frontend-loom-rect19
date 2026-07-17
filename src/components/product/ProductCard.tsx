@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { addItem } from '@/features/cart/cartSlice'
+import { useAddToCartMutation } from '@/features/cart/cartApi'
+import { selectIsAuth } from '@/features/auth/authSlice'
 import { toggleWishlist, selectIsWishlisted } from '@/features/wishlist/wishlistSlice'
 import { discountPercent, formatCurrency } from '@/utils/formatCurrency'
 import ProductBadge from '@/components/product/ProductBadge'
@@ -25,16 +27,24 @@ export default function ProductCard({ product }: { product: Product }) {
   const dispatch = useDispatch<AppDispatch>()
   const [ hov, setHov ] = useState(false)
   const wishlisted = useSelector(selectIsWishlisted(product.id))
+  const isAuth = useSelector(selectIsAuth)
+  const [ addToBackendCart ] = useAddToCartMutation()
   const discount = discountPercent(product.originalPrice, product.price)
 
   const handleAddToCart = () => {
-    dispatch(addItem({
-      productId: product.id,
-      name: product.name,
-      price: product.price,
-      qty: 1,
-      image: product.image,
-    }))
+    if (isAuth) {
+      // Logged in — sync with backend cart
+      addToBackendCart({ productId: product.id, qty: 1 })
+    } else {
+      // Not logged in — use Redux cart only
+      dispatch(addItem({
+        productId: product.id,
+        name: product.name,
+        price: product.price,
+        qty: 1,
+        image: product.image,
+      }))
+    }
   }
 
   return (

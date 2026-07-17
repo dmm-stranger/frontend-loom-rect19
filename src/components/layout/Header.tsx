@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { openCartDrawer, openMobileMenu, toggleTheme, selectTheme } from '@/features/ui/uiSlice'
 import { selectCartCount } from '@/features/cart/cartSlice'
+import { useGetCartQuery } from '@/features/cart/cartApi'
 import { selectIsAuth, logout } from '@/features/auth/authSlice'
 import { ROUTES } from '@/constants/routes'
 import { NAV_LINKS } from '@/constants/categories'
@@ -13,8 +14,16 @@ import type { AppDispatch } from '@/app/store'
 export default function Header() {
   const dispatch = useDispatch<AppDispatch>()
   const navigate = useNavigate()
-  const cartCount = useSelector(selectCartCount)
+
+  const reduxCartCount = useSelector(selectCartCount)
   const isAuth = useSelector(selectIsAuth)
+
+  // Backend cart count when logged in
+  const { data: cartData } = useGetCartQuery({}, { skip: !isAuth })
+  const cartCount = isAuth
+    ? (cartData?.data?.itemCount || 0)
+    : reduxCartCount
+
   const theme = useSelector(selectTheme)
 
   const [ searchVal, setSearchVal ] = useState('')
