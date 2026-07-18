@@ -23,7 +23,6 @@ export default function Header() {
   const cartCount = isAuth
     ? (cartData?.data?.itemCount || 0)
     : reduxCartCount
-
   const theme = useSelector(selectTheme)
 
   const [ searchVal, setSearchVal ] = useState('')
