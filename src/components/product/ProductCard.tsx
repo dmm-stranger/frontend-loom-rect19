@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { Link } from 'react-router-dom'
 import { addItem } from '@/features/cart/cartSlice'
 import { useAddToCartMutation } from '@/features/cart/cartApi'
-import { selectIsAuth } from '@/features/auth/authSlice'
 import { toggleWishlist, selectIsWishlisted } from '@/features/wishlist/wishlistSlice'
+import { useAddToWishlistMutation, useRemoveFromWishlistMutation } from '@/features/wishlist/wishlistApi'
 import { discountPercent, formatCurrency } from '@/utils/formatCurrency'
+import { selectIsAuth } from '@/features/auth/authSlice'
 import ProductBadge from '@/components/product/ProductBadge'
 import type { AppDispatch } from '@/app/store'
-import { Link } from 'react-router-dom'
 
 interface Product {
   id: string
@@ -20,23 +21,26 @@ interface Product {
   badge: 'HOT' | 'NEW' | 'SALE' | 'DEAL' | null
   stock: number
   image: string
-  slug?: string   // ← add this line
+  slug?: string
 }
 
 export default function ProductCard({ product }: { product: Product }) {
   const dispatch = useDispatch<AppDispatch>()
   const [ hov, setHov ] = useState(false)
-  const wishlisted = useSelector(selectIsWishlisted(product.id))
+
   const isAuth = useSelector(selectIsAuth)
+  const wishlisted = useSelector(selectIsWishlisted(product.id))
+
   const [ addToBackendCart ] = useAddToCartMutation()
+  const [ addToWishlistApi ] = useAddToWishlistMutation()
+  const [ removeFromWishlistApi ] = useRemoveFromWishlistMutation()
+
   const discount = discountPercent(product.originalPrice, product.price)
 
   const handleAddToCart = () => {
     if (isAuth) {
-      // Logged in — sync with backend cart
       addToBackendCart({ productId: product.id, qty: 1 })
     } else {
-      // Not logged in — use Redux cart only
       dispatch(addItem({
         productId: product.id,
         name: product.name,
@@ -44,6 +48,16 @@ export default function ProductCard({ product }: { product: Product }) {
         qty: 1,
         image: product.image,
       }))
+    }
+  }
+
+  const handleWishlist = () => {
+    if (isAuth) {
+      wishlisted
+        ? removeFromWishlistApi(product.id)
+        : addToWishlistApi(product.id)
+    } else {
+      dispatch(toggleWishlist(product.id))
     }
   }
 
@@ -67,7 +81,7 @@ export default function ProductCard({ product }: { product: Product }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <ProductBadge type={product.badge} />
         <button
-          onClick={() => dispatch(toggleWishlist(product.id))}
+          onClick={handleWishlist}
           style={{
             background: wishlisted ? '#ff4d6a18' : 'transparent',
             border: `1px solid ${wishlisted ? '#ff4d6a44' : 'var(--border)'}`,
@@ -95,7 +109,7 @@ export default function ProductCard({ product }: { product: Product }) {
         )}
       </div>
 
-      {/* Info — clicking name goes to product detail */}
+      {/* Info */}
       <Link to={`/products/${product.slug || product.id}`} style={{ textDecoration: 'none' }}>
         <p style={{ fontSize: 9, color: 'var(--accent)', fontFamily: 'var(--font-mono)', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.1em' }}>{product.category}</p>
         <h3 style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', lineHeight: 1.3 }}>{product.name}</h3>

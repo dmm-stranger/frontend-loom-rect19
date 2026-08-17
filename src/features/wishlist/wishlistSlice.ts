@@ -13,6 +13,11 @@ const wishlistSlice = createSlice({
   name: 'wishlist',
   initialState,
   reducers: {
+    // Sync backend wishlist productIds into Redux
+    setWishlist: (state, action: PayloadAction<string[]>) => {
+      state.items = action.payload
+    },
+    // Toggle for non-logged in users (Redux only)
     toggleWishlist: (state, action: PayloadAction<string>) => {
       const idx = state.items.indexOf(action.payload)
       if (idx === -1) state.items.push(action.payload)
@@ -24,10 +29,10 @@ const wishlistSlice = createSlice({
   },
 })
 
-export const { toggleWishlist, clearWishlist } = wishlistSlice.actions
+export const { setWishlist, toggleWishlist, clearWishlist } = wishlistSlice.actions
 
 export const selectWishlist = (state: { wishlist: WishlistState }) => state.wishlist.items
-export const selectIsWishlisted = (productId: string) => (state: { wishlist: WishlistState }) =>
-  state.wishlist.items.includes(productId)
+export const selectIsWishlisted = (id: string) => (state: { wishlist: WishlistState }) =>
+  state.wishlist.items.includes(id)
 
 export default wishlistSlice.reducer

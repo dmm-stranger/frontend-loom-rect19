@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { RouterProvider } from 'react-router-dom'
 import { router } from '@/routes/router'
 import { useDispatch, useSelector } from 'react-redux'
+import { useGetWishlistQuery } from '@/features/wishlist/wishlistApi'
 import { useGetMeQuery } from '@/features/auth/authApi'
 import { selectToken, setCredentials, logout } from '@/features/auth/authSlice'
 import type { AppDispatch } from '@/app/store'
@@ -14,6 +15,9 @@ function AppContent() {
   const { data, isError } = useGetMeQuery(undefined, {
     skip: !token,
   })
+
+  // Sync backend wishlist on app load
+  useGetWishlistQuery(undefined, { skip: !token })
 
   useEffect(() => {
     if (data?.data?.user) {
