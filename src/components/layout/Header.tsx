@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { openCartDrawer, openMobileMenu, toggleTheme, selectTheme } from '@/features/ui/uiSlice'
 import { selectCartCount } from '@/features/cart/cartSlice'
 import { useGetCartQuery } from '@/features/cart/cartApi'
-import { selectIsAuth, logout } from '@/features/auth/authSlice'
+import { selectIsAuth, selectIsAdmin, logout } from '@/features/auth/authSlice'
 import { ROUTES } from '@/constants/routes'
 import { NAV_LINKS } from '@/constants/categories'
 import { useDebounce } from '@/hooks/useDebounce'
@@ -17,6 +17,7 @@ export default function Header() {
 
   const reduxCartCount = useSelector(selectCartCount)
   const isAuth = useSelector(selectIsAuth)
+  const isAdmin = useSelector(selectIsAdmin)
 
   // Backend cart count when logged in
   const { data: cartData } = useGetCartQuery({}, { skip: !isAuth })
@@ -154,6 +155,15 @@ export default function Header() {
                     >
                       📦 My Orders
                     </Link>
+                    {isAdmin && (
+                      <Link
+                        to="/admin"
+                        onClick={() => setUserMenuOpen(false)}
+                        style={{ display: 'block', padding: '12px 16px', color: 'var(--accent)', fontFamily: 'var(--font-sans)', fontSize: 13, textDecoration: 'none', borderBottom: '1px solid var(--border)' }}
+                      >
+                        🛠️ Admin Panel
+                      </Link>
+                    )}
                     <button
                       onClick={() => { dispatch(logout()); setUserMenuOpen(false) }}
                       style={{ display: 'block', width: '100%', padding: '12px 16px', color: 'var(--danger)', fontFamily: 'var(--font-sans)', fontSize: 13, textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer' }}

@@ -8,7 +8,6 @@ import { useGetCartQuery } from '@/features/cart/cartApi'
 import {
   useCreateOrderMutation,
   useCreatePaymentIntentMutation,
-  usePayOrderMutation,
 } from '@/features/orders/checkoutApi'
 import { clearCart } from '@/features/cart/cartSlice'
 import { formatCurrency } from '@/utils/formatCurrency'
@@ -30,7 +29,12 @@ export default function CheckoutPage() {
   const { data, isLoading } = useGetCartQuery({}, { skip: !isAuth })
   const [ createOrder, { isLoading: ordering } ] = useCreateOrderMutation()
   const [ createPaymentIntent ] = useCreatePaymentIntentMutation()
-  const [ payOrder ] = usePayOrderMutation()
+  // NOTE: usePayOrderMutation/checkoutApi's payOrder is unused — the backend
+  // has no POST /orders/:id/pay route. Order payment status is set by the
+  // Stripe webhook (payment.routes.js), confirmed via handlePaymentSuccess
+  // below. Left out of the destructure to keep the strict unused-var check
+  // passing; the mutation itself is left in checkoutApi.ts in case a manual
+  // fallback confirmation path is added later.
 
   const cart = data?.data
   const items = cart?.items || []
@@ -91,7 +95,7 @@ export default function CheckoutPage() {
   }
 
   // Step 2 → Step 3: Payment confirmed
-  const handlePaymentSuccess = async (paymentIntentId: string) => {
+  const handlePaymentSuccess = async (_paymentIntentId: string) => {
     // No /pay endpoint needed — Stripe webhook handles order status update
     // Just clear cart and show confirmation
     dispatch(clearCart())

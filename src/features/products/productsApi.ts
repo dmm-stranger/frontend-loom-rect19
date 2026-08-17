@@ -38,7 +38,7 @@ export const productsApi = baseApi.injectEndpoints({
     // Works with both slug and _id
     getProductById: builder.query({
       query: (slugOrId: string) => `/products/${slugOrId}`,
-      providesTags: (result, error, slugOrId) => [ { type: 'Product', id: slugOrId } ],
+      providesTags: (_result, _error, slugOrId) => [ { type: 'Product', id: slugOrId } ],
     }),
 
     // GET /api/v1/categories

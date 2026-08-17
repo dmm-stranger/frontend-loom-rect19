@@ -24,7 +24,7 @@ export const wishlistApi = baseApi.injectEndpoints({
         method: 'POST',
       }),
       invalidatesTags: [ 'Wishlist' ],
-      async onQueryStarted(productId, { dispatch, queryFulfilled }) {
+      async onQueryStarted(_productId, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled
           dispatch(setWishlist(data.data.productIds || []))
@@ -39,7 +39,7 @@ export const wishlistApi = baseApi.injectEndpoints({
         method: 'DELETE',
       }),
       invalidatesTags: [ 'Wishlist' ],
-      async onQueryStarted(productId, { dispatch, queryFulfilled }) {
+      async onQueryStarted(_productId, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled
           dispatch(setWishlist(data.data.productIds || []))

@@ -2,11 +2,11 @@ import { createSlice } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
 
 interface User {
-  role: string
   id: string
   name: string
   email: string
   avatar: string
+  role: 'customer' | 'admin'
 }
 
 interface AuthState {
@@ -59,5 +59,9 @@ export const selectCurrentUser = (state: { auth: AuthState }) => state.auth.user
 export const selectToken = (state: { auth: AuthState }) => state.auth.token
 export const selectIsAuth = (state: { auth: AuthState }) => !!state.auth.token
 export const selectAuthStatus = (state: { auth: AuthState }) => state.auth.status
+// True only once the user object has loaded AND role === 'admin'.
+// Deliberately does NOT fall back to "token exists" — a customer token
+// must never be treated as admin just because the user hasn't loaded yet.
+export const selectIsAdmin = (state: { auth: AuthState }) => state.auth.user?.role === 'admin'
 
 export default authSlice.reducer

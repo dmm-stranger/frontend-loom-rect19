@@ -12,7 +12,7 @@ export const ordersApi = baseApi.injectEndpoints({
     // GET /api/v1/orders/:id
     getOrderById: builder.query({
       query: (id: string) => `/orders/${id}`,
-      providesTags: (result, error, id) => [ { type: 'Order', id } ],
+      providesTags: (_result, _error, id) => [ { type: 'Order', id } ],
     }),
 
   }),
