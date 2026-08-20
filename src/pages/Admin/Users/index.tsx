@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useSelector } from 'react-redux'
+import { Link } from 'react-router-dom'
 import Spinner from '@/components/common/Spinner'
 import EmptyState from '@/components/common/EmptyState'
 import { PageHeader, cardStyle, inputStyle, Table, tdStyle, Badge, Pagination } from '@/components/admin/AdminUI'
@@ -85,7 +86,11 @@ export default function AdminUsers() {
             <Table headers={[ 'Name', 'Email', 'Role', 'Status', 'Joined', '' ]}>
               {users.map((u: any) => (
                 <tr key={u._id}>
-                  <td style={tdStyle}>{u.name}</td>
+                  <td style={tdStyle}>
+                    <Link to={`/admin/users/${u._id}`} style={{ color: 'var(--text)', textDecoration: 'none' }}>
+                      {u.name}
+                    </Link>
+                  </td>
                   <td style={tdStyle}>{u.email}</td>
                   <td style={tdStyle}>
                     <select

@@ -9,9 +9,61 @@ import {
   useGetAdminProductsQuery,
   useToggleFeaturedMutation,
   useDeleteProductMutation,
+  useUpdateStockMutation,
 } from '@/features/admin/adminProductsApi'
 import { useGetCategoriesQuery } from '@/features/products/productsApi'
 import { useDebounce } from '@/hooks/useDebounce'
+
+// Inline-editable stock cell. Click the badge to reveal a number input;
+// Enter/blur saves via PATCH /admin/products/:id/stock, Escape cancels.
+function StockCell({ id, stock }: { id: string; stock: number }) {
+  const [ updateStock, { isLoading: saving } ] = useUpdateStockMutation()
+  const [ editing, setEditing ] = useState(false)
+  const [ value, setValue ] = useState(String(stock))
+
+  const color = stock === 0 ? 'var(--danger)' : stock <= 5 ? 'var(--gold)' : 'var(--success)'
+
+  const commit = async () => {
+    const next = Number(value)
+    setEditing(false)
+    if (Number.isNaN(next) || next < 0 || next === stock) { setValue(String(stock)); return }
+    try {
+      await updateStock({ id, stock: next }).unwrap()
+    } catch (err: any) {
+      alert(err?.data?.message || 'Failed to update stock')
+      setValue(String(stock))
+    }
+  }
+
+  if (editing) {
+    return (
+      <input
+        type="number"
+        min="0"
+        autoFocus
+        value={value}
+        disabled={saving}
+        onChange={(e) => setValue(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') commit()
+          if (e.key === 'Escape') { setValue(String(stock)); setEditing(false) }
+        }}
+        style={{ ...inputStyle, width: 70, padding: '4px 8px', fontSize: 12 }}
+      />
+    )
+  }
+
+  return (
+    <button
+      onClick={() => { setValue(String(stock)); setEditing(true) }}
+      title="Click to edit stock"
+      style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}
+    >
+      <Badge text={String(stock)} color={color} />
+    </button>
+  )
+}
 
 export default function AdminProductsList() {
   const [ page, setPage ] = useState(1)
@@ -85,10 +137,7 @@ export default function AdminProductsList() {
                   <td style={tdStyle}>{p.category?.name || '—'}</td>
                   <td style={tdStyle}>{formatCurrency(p.discountPrice || p.price)}</td>
                   <td style={tdStyle}>
-                    <Badge
-                      text={String(p.stock)}
-                      color={p.stock === 0 ? 'var(--danger)' : p.stock <= 5 ? 'var(--gold)' : 'var(--success)'}
-                    />
+                    <StockCell id={p._id} stock={p.stock} />
                   </td>
                   <td style={tdStyle}>
                     <button

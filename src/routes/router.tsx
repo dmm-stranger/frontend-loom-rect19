@@ -19,6 +19,7 @@ import AdminProductsList from '@/pages/Admin/Products/index'
 import AdminProductForm from '@/pages/Admin/Products/Form'
 import AdminCategories from '@/pages/Admin/Categories/index'
 import AdminUsers from '@/pages/Admin/Users/index'
+import AdminUserDetail from '@/pages/Admin/Users/Detail'
 import AdminCoupons from '@/pages/Admin/Coupons/index'
 import AdminReviews from '@/pages/Admin/Reviews/index'
 import AdminSettings from '@/pages/Admin/Settings/index'
@@ -57,6 +58,7 @@ export const router = createBrowserRouter([
               { path: 'products/:productId/edit', element: <AdminProductForm /> },
               { path: 'categories', element: <AdminCategories /> },
               { path: 'users', element: <AdminUsers /> },
+              { path: 'users/:userId', element: <AdminUserDetail /> },
               { path: 'coupons', element: <AdminCoupons /> },
               { path: 'reviews', element: <AdminReviews /> },
               { path: 'settings', element: <AdminSettings /> },
