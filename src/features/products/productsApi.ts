@@ -44,7 +44,13 @@ export const productsApi = baseApi.injectEndpoints({
     // GET /api/v1/categories
     getCategories: builder.query({
       query: () => '/categories',
-      providesTags: [ 'Category' ],
+      providesTags: (result) =>
+        result?.data?.categories
+          ? [
+            ...result.data.categories.map(({ _id }: any) => ({ type: 'Category' as const, id: _id })),
+            { type: 'Category' as const, id: 'LIST' },
+          ]
+          : [ { type: 'Category' as const, id: 'LIST' } ],
     }),
 
   }),

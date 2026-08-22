@@ -62,6 +62,40 @@ export const authApi = baseApi.injectEndpoints({
       providesTags: [ 'User' ],
     }),
 
+    // POST /api/v1/auth/forgot-password
+    forgotPassword: builder.mutation({
+      query: (email: string) => ({
+        url: '/auth/forgot-password',
+        method: 'POST',
+        body: { email },
+      }),
+    }),
+
+    // PATCH /api/v1/auth/reset-password/:token
+    resetPassword: builder.mutation({
+      query: ({ token, password }: { token: string; password: string }) => ({
+        url: `/auth/reset-password/${token}`,
+        method: 'PATCH',
+        body: { password },
+      }),
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled
+          // Reset also logs the user in, same shape as login/register
+          dispatch(setCredentials({ user: data.data.user, token: data.data.token }))
+        } catch { }
+      },
+    }),
+
+    // PATCH /api/v1/auth/change-password
+    changePassword: builder.mutation({
+      query: (body: { currentPassword: string; newPassword: string }) => ({
+        url: '/auth/change-password',
+        method: 'PATCH',
+        body,
+      }),
+    }),
+
   }),
   overrideExisting: false,
 })
@@ -71,4 +105,7 @@ export const {
   useLoginMutation,
   useLogoutUserMutation,
   useGetMeQuery,
+  useForgotPasswordMutation,
+  useResetPasswordMutation,
+  useChangePasswordMutation,
 } = authApi
