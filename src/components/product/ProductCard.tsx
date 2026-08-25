@@ -7,6 +7,7 @@ import { toggleWishlist, selectIsWishlisted } from '@/features/wishlist/wishlist
 import { useAddToWishlistMutation, useRemoveFromWishlistMutation } from '@/features/wishlist/wishlistApi'
 import { discountPercent, formatCurrency } from '@/utils/formatCurrency'
 import { selectIsAuth } from '@/features/auth/authSlice'
+import { addToast } from '@/features/ui/uiSlice'
 import ProductBadge from '@/components/product/ProductBadge'
 import type { AppDispatch } from '@/app/store'
 
@@ -37,9 +38,14 @@ export default function ProductCard({ product }: { product: Product }) {
 
   const discount = discountPercent(product.originalPrice, product.price)
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (isAuth) {
-      addToBackendCart({ productId: product.id, qty: 1 })
+      try {
+        await addToBackendCart({ productId: product.id, qty: 1 }).unwrap()
+        dispatch(addToast(`${product.name} added to cart`, 'success'))
+      } catch {
+        dispatch(addToast('Could not add item to cart', 'error'))
+      }
     } else {
       dispatch(addItem({
         productId: product.id,
@@ -48,6 +54,7 @@ export default function ProductCard({ product }: { product: Product }) {
         qty: 1,
         image: product.image,
       }))
+      dispatch(addToast(`${product.name} added to cart`, 'success'))
     }
   }
 

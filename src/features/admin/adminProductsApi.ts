@@ -92,7 +92,16 @@ export const adminProductsApi = baseApi.injectEndpoints({
         url: `/products/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: [ { type: 'Product', id: 'ADMIN_LIST' }, { type: 'Product', id: 'LIST' } ],
+      // Must also invalidate FEATURED (a deleted product left the homepage's
+      // featured cache stale) and the product's own detail tag (its product
+      // page / cart / wishlist entries kept serving cached data as if it
+      // still existed) — matching the tags createProduct/updateProduct use.
+      invalidatesTags: (_result, _error, id) => [
+        { type: 'Product', id: 'ADMIN_LIST' },
+        { type: 'Product', id: 'LIST' },
+        { type: 'Product', id: 'FEATURED' },
+        { type: 'Product', id },
+      ],
     }),
 
     // PATCH /api/v1/admin/products/:id/featured

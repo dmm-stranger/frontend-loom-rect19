@@ -1,12 +1,15 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { useGetProductByIdQuery, useGetProductsQuery } from '@/features/products/productsApi'
 import { addItem } from '@/features/cart/cartSlice'
+import { useAddToCartMutation } from '@/features/cart/cartApi'
 import { toggleWishlist, selectIsWishlisted } from '@/features/wishlist/wishlistSlice'
-import { openCartDrawer } from '@/features/ui/uiSlice'
+import { useAddToWishlistMutation, useRemoveFromWishlistMutation } from '@/features/wishlist/wishlistApi'
+import { addToast } from '@/features/ui/uiSlice'
+import { useGetProductReviewsQuery, useSubmitReviewMutation, useDeleteReviewMutation } from '@/features/reviews/reviewsApi'
 import { formatCurrency, discountPercent } from '@/utils/formatCurrency'
-import { selectIsAuth } from '@/features/auth/authSlice'
+import { selectIsAuth, selectCurrentUser } from '@/features/auth/authSlice'
 import Spinner from '@/components/common/Spinner'
 import EmptyState from '@/components/common/EmptyState'
 import ProductGrid from '@/components/product/ProductGrid'
@@ -19,16 +22,74 @@ export default function ProductDetail() {
   const dispatch = useDispatch<AppDispatch>()
   const navigate = useNavigate()
   const isAuth = useSelector(selectIsAuth)
+  const currentUser = useSelector(selectCurrentUser)
   const wishlisted = useSelector(selectIsWishlisted(productId || ''))
 
   const [ activeImage, setActiveImage ] = useState(0)
   const [ activeTab, setActiveTab ] = useState<TabType>('description')
   const [ qty, setQty ] = useState(1)
   const [ addedToCart, setAddedToCart ] = useState(false)
+  const [ addToBackendCart ] = useAddToCartMutation()
+  const [ addToWishlistApi ] = useAddToWishlistMutation()
+  const [ removeFromWishlistApi ] = useRemoveFromWishlistMutation()
+
+  // ── Reviews ──
+  const [ reviewRating, setReviewRating ] = useState(0)
+  const [ reviewHoverRating, setReviewHoverRating ] = useState(0)
+  const [ reviewComment, setReviewComment ] = useState('')
+  const [ submitReview, { isLoading: isSubmittingReview } ] = useSubmitReviewMutation()
+  const [ deleteReview ] = useDeleteReviewMutation()
 
   // Fetch product by slug
   const { data, isLoading, isError } = useGetProductByIdQuery(productId || '')
   const product = data?.data?.product
+
+  // Fetch reviews — the review routes are keyed by the product's real _id
+  // (Product.findById), not the slug, so this must wait until `product`
+  // has resolved even though the page URL itself may use the slug.
+  const { data: reviewsData } = useGetProductReviewsQuery(product?._id, { skip: !product?._id })
+  const reviews = reviewsData?.data?.reviews || []
+  const myReview = reviews.find((r: any) => r.user?._id === currentUser?.id)
+
+  // Prefill the form with the user's existing review so "Write a Review"
+  // becomes an edit of what they already posted, instead of silently
+  // discarding it (the backend enforces one review per user per product).
+  useEffect(() => {
+    if (myReview) {
+      setReviewRating(myReview.rating)
+      setReviewComment(myReview.comment)
+    }
+  }, [ myReview?._id ])
+
+  const handleSubmitReview = async () => {
+    if (!product) return
+    if (reviewRating < 1) {
+      dispatch(addToast('Please select a star rating', 'error'))
+      return
+    }
+    if (reviewComment.trim().length < 10) {
+      dispatch(addToast('Review must be at least 10 characters', 'error'))
+      return
+    }
+    try {
+      await submitReview({ productId: product._id, rating: reviewRating, comment: reviewComment.trim() }).unwrap()
+      dispatch(addToast(myReview ? 'Review updated' : 'Review submitted', 'success'))
+      setReviewRating(0)
+      setReviewComment('')
+    } catch (err: any) {
+      dispatch(addToast(err?.data?.message || 'Could not submit review', 'error'))
+    }
+  }
+
+  const handleDeleteReview = async () => {
+    if (!product || !myReview) return
+    try {
+      await deleteReview({ productId: product._id, reviewId: myReview._id }).unwrap()
+      dispatch(addToast('Review deleted', 'success'))
+    } catch {
+      dispatch(addToast('Could not delete review', 'error'))
+    }
+  }
 
   // Fetch related products (same category)
   const { data: relatedData } = useGetProductsQuery(
@@ -53,18 +114,42 @@ export default function ProductDetail() {
       slug: p.slug,
     }))
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!product) return
-    dispatch(addItem({
-      productId: product._id,
-      name: product.name,
-      price: product.discountPrice > 0 ? product.discountPrice : product.price,
-      qty,
-      image: product.images?.[ 0 ]?.url || '📦',
-    }))
+    const price = product.discountPrice > 0 ? product.discountPrice : product.price
+    const image = product.images?.[ 0 ]?.url || '📦'
+
+    if (isAuth) {
+      try {
+        await addToBackendCart({ productId: product._id, qty }).unwrap()
+      } catch {
+        dispatch(addToast('Could not add item to cart', 'error'))
+        return
+      }
+    } else {
+      dispatch(addItem({
+        productId: product._id,
+        name: product.name,
+        price,
+        qty,
+        image,
+      }))
+    }
+
+    dispatch(addToast(`${product.name} added to cart`, 'success'))
     setAddedToCart(true)
     setTimeout(() => setAddedToCart(false), 2000)
-    dispatch(openCartDrawer())
+  }
+
+  const handleWishlist = () => {
+    if (!product) return
+    if (isAuth) {
+      wishlisted
+        ? removeFromWishlistApi(product._id)
+        : addToWishlistApi(product._id)
+    } else {
+      dispatch(toggleWishlist(product._id))
+    }
   }
 
   // ── Loading ──
@@ -260,7 +345,7 @@ export default function ProductDetail() {
             </button>
 
             <button
-              onClick={() => dispatch(toggleWishlist(product._id))}
+              onClick={handleWishlist}
               style={{
                 width: 50, height: 50, flexShrink: 0,
                 background: wishlisted ? '#ff4d6a18' : 'var(--bg-card)',
@@ -386,16 +471,48 @@ export default function ProductDetail() {
         </div>
 
         {/* No reviews yet */}
-        {product.ratingsCount === 0 && (
+        {reviews.length === 0 && (
           <div style={{ padding: '32px 0', textAlign: 'center', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', fontSize: 12 }}>
             No reviews yet. Be the first to review this product.
           </div>
         )}
 
-        {/* Add review — logged in users only */}
+        {/* Existing reviews list */}
+        {reviews.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 24 }}>
+            {reviews.map((r: any) => (
+              <div key={r._id} style={{ padding: 16, background: 'var(--bg-card)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
+                  <div>
+                    <p style={{ fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: 13, color: 'var(--text)' }}>
+                      {r.user?.name || 'Anonymous'}
+                    </p>
+                    <span style={{ color: 'var(--gold)', fontSize: 13 }}>{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</span>
+                  </div>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-muted)' }}>
+                    {new Date(r.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
+                <p style={{ fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--text-sub)', lineHeight: 1.5 }}>
+                  {r.comment}
+                </p>
+                {r.user?._id === currentUser?.id && (
+                  <button
+                    onClick={handleDeleteReview}
+                    style={{ marginTop: 8, background: 'transparent', border: 'none', color: '#ff4d6a', fontFamily: 'var(--font-mono)', fontSize: 11, cursor: 'pointer', padding: 0 }}
+                  >
+                    DELETE MY REVIEW
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Add / edit review — logged in users only */}
         <div style={{ marginTop: 24, padding: 20, background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)' }}>
           <h3 style={{ fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: 16, color: 'var(--text)', marginBottom: 16 }}>
-            Write a Review
+            {myReview ? 'Edit Your Review' : 'Write a Review'}
           </h3>
 
           {!isAuth ? (
@@ -414,7 +531,19 @@ export default function ProductDetail() {
                 <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.1em', marginBottom: 8 }}>YOUR RATING</p>
                 <div style={{ display: 'flex', gap: 4 }}>
                   {[ 1, 2, 3, 4, 5 ].map(star => (
-                    <button key={star} style={{ background: 'transparent', border: 'none', fontSize: 24, cursor: 'pointer', color: 'var(--gold)' }}>★</button>
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setReviewRating(star)}
+                      onMouseEnter={() => setReviewHoverRating(star)}
+                      onMouseLeave={() => setReviewHoverRating(0)}
+                      style={{
+                        background: 'transparent', border: 'none', fontSize: 24, cursor: 'pointer',
+                        color: star <= (reviewHoverRating || reviewRating) ? 'var(--gold)' : 'var(--border)',
+                      }}
+                    >
+                      ★
+                    </button>
                   ))}
                 </div>
               </div>
@@ -422,13 +551,20 @@ export default function ProductDetail() {
               <div>
                 <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.1em', marginBottom: 8 }}>YOUR REVIEW</p>
                 <textarea
+                  value={reviewComment}
+                  onChange={e => setReviewComment(e.target.value)}
                   placeholder="Share your experience with this product…"
                   rows={4}
                   style={{ width: '100%', padding: '12px 14px', background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', color: 'var(--text)', fontFamily: 'var(--font-sans)', fontSize: 13, outline: 'none', resize: 'vertical', boxSizing: 'border-box' }}
                 />
               </div>
-              <button style={{ alignSelf: 'flex-start', background: 'var(--accent)', color: '#08080e', border: 'none', borderRadius: 'var(--radius-md)', padding: '12px 24px', fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: 12, letterSpacing: '0.1em', cursor: 'pointer' }}>
-                SUBMIT REVIEW
+              <button
+                type="button"
+                onClick={handleSubmitReview}
+                disabled={isSubmittingReview}
+                style={{ alignSelf: 'flex-start', background: 'var(--accent)', color: '#08080e', border: 'none', borderRadius: 'var(--radius-md)', padding: '12px 24px', fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: 12, letterSpacing: '0.1em', cursor: isSubmittingReview ? 'default' : 'pointer', opacity: isSubmittingReview ? 0.6 : 1 }}
+              >
+                {isSubmittingReview ? 'SUBMITTING…' : myReview ? 'UPDATE REVIEW' : 'SUBMIT REVIEW'}
               </button>
             </div>
           )}

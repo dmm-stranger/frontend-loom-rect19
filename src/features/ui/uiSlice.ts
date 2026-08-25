@@ -8,11 +8,18 @@ const getSystemTheme = (): 'dark' | 'light' => {
   return 'dark'
 }
 
+interface Toast {
+  id: number
+  message: string
+  type: 'success' | 'error' | 'info'
+}
+
 interface UiState {
   cartDrawerOpen: boolean
   mobileMenuOpen: boolean
   filterDrawerOpen: boolean
   theme: 'dark' | 'light'
+  toasts: Toast[]
 }
 
 const initialState: UiState = {
@@ -20,7 +27,10 @@ const initialState: UiState = {
   mobileMenuOpen: false,
   filterDrawerOpen: false,
   theme: getSystemTheme(),
+  toasts: [],
 }
+
+let toastIdCounter = 0
 
 const uiSlice = createSlice({
   name: 'ui',
@@ -35,6 +45,20 @@ const uiSlice = createSlice({
     toggleTheme: (state) => {
       state.theme = state.theme === 'dark' ? 'light' : 'dark'
     },
+    // Show a transient toast (e.g. "Added to cart"). Consumers should also
+    // set up a timeout to dispatch removeToast, or rely on ToastContainer
+    // doing it automatically.
+    addToast: {
+      reducer: (state, action: { payload: Toast }) => {
+        state.toasts.push(action.payload)
+      },
+      prepare: (message: string, type: Toast['type'] = 'success') => ({
+        payload: { id: ++toastIdCounter, message, type },
+      }),
+    },
+    removeToast: (state, action: { payload: number }) => {
+      state.toasts = state.toasts.filter(t => t.id !== action.payload)
+    },
   },
 })
 
@@ -43,11 +67,13 @@ export const {
   openMobileMenu, closeMobileMenu,
   openFilterDrawer, closeFilterDrawer,
   toggleTheme,
+  addToast, removeToast,
 } = uiSlice.actions
 
 export const selectCartDrawerOpen = (state: { ui: UiState }) => state.ui.cartDrawerOpen
 export const selectMobileMenuOpen = (state: { ui: UiState }) => state.ui.mobileMenuOpen
 export const selectFilterDrawerOpen = (state: { ui: UiState }) => state.ui.filterDrawerOpen
 export const selectTheme = (state: { ui: UiState }) => state.ui.theme
+export const selectToasts = (state: { ui: UiState }) => state.ui.toasts
 
 export default uiSlice.reducer

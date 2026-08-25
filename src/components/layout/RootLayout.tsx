@@ -3,22 +3,12 @@ import { useDispatch, useSelector } from 'react-redux'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
 import CartDrawer from '@/features/cart/CartDrawer'
+import ToastContainer from '@/components/common/ToastContainer'
+import CategoryIcon from '@/components/common/CategoryIcon'
 import ErrorBoundary from '@/components/common/ErrorBoundary'
 import { selectMobileMenuOpen, closeMobileMenu } from '@/features/ui/uiSlice'
 import { useGetCategoriesQuery } from '@/features/products/productsApi'
 import type { AppDispatch } from '@/app/store'
-
-// Category icons mapped by slug
-const CAT_ICONS: Record<string, string> = {
-  laptops: '💻',
-  smartphones: '📱',
-  monitors: '🖥️',
-  audio: '🎧',
-  gaming: '🎮',
-  accessories: '🖱️',
-  storage: '💾',
-  networking: '📡',
-}
 
 export default function RootLayout() {
   const dispatch = useDispatch<AppDispatch>()
@@ -32,6 +22,7 @@ export default function RootLayout() {
     <>
       {/* ── Fixed overlays ── */}
       <CartDrawer />
+      <ToastContainer />
 
       {/* ── Mobile Menu ── */}
       {mobileMenuOpen && (
@@ -52,7 +43,7 @@ export default function RootLayout() {
                 onClick={() => dispatch(closeMobileMenu())}
                 style={{ color: 'var(--text)', fontFamily: 'var(--font-sans)', fontSize: 15, padding: '12px 0', textDecoration: 'none', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 10 }}
               >
-                <span>{CAT_ICONS[ cat.slug ] || '📦'}</span>
+                <CategoryIcon category={cat} size={20} />
                 {cat.name}
               </Link>
             ))}
@@ -82,7 +73,7 @@ export default function RootLayout() {
                   transition: 'color 0.15s',
                 }}
               >
-                <span style={{ fontSize: 16 }}>{CAT_ICONS[ cat.slug ] || '📦'}</span>
+                <CategoryIcon category={cat} size={16} />
                 {cat.name}
               </Link>
             ))}

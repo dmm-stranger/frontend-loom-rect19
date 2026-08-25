@@ -7,17 +7,7 @@ import { useGetFeaturedProductsQuery, useGetCategoriesQuery } from '@/features/p
 import ProductGrid from '@/components/product/ProductGrid'
 import Spinner from '@/components/common/Spinner'
 import type { AppDispatch } from '@/app/store'
-
-const CAT_ICONS: Record<string, string> = {
-  laptops: '💻',
-  smartphones: '📱',
-  monitors: '🖥️',
-  audio: '🎧',
-  gaming: '🎮',
-  accessories: '🖱️',
-  storage: '💾',
-  networking: '📡',
-}
+import CategoryIcon from '@/components/common/CategoryIcon'
 
 export default function HomePage() {
   const dispatch = useDispatch<AppDispatch>()
@@ -131,7 +121,7 @@ export default function HomePage() {
                   transition: 'border-color 0.2s',
                 }}
               >
-                <span style={{ fontSize: 32 }}>{CAT_ICONS[ cat.slug ] || '📦'}</span>
+                <CategoryIcon category={cat} size={32} />
                 <span style={{ fontSize: 13, fontWeight: 600 }}>{cat.name}</span>
               </Link>
             ))}

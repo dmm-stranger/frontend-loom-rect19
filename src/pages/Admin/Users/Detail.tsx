@@ -76,7 +76,7 @@ export default function AdminUserDetail() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 16 }}>
+      <div className="stack-on-mobile" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 16 }}>
         {/* Order history */}
         <div style={cardStyle}>
           <span style={labelStyle}>Order History</span>

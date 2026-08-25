@@ -4,9 +4,10 @@ import { useDispatch, useSelector } from 'react-redux'
 import { openCartDrawer, openMobileMenu, toggleTheme, selectTheme } from '@/features/ui/uiSlice'
 import { selectCartCount } from '@/features/cart/cartSlice'
 import { useGetCartQuery } from '@/features/cart/cartApi'
-import { selectIsAuth, selectIsAdmin, logout } from '@/features/auth/authSlice'
+import { selectIsAuth, selectIsAdmin } from '@/features/auth/authSlice'
+import { useLogoutUserMutation } from '@/features/auth/authApi'
 import { ROUTES } from '@/constants/routes'
-import { NAV_LINKS } from '@/constants/categories'
+import { useGetCategoriesQuery } from '@/features/products/productsApi'
 import { useDebounce } from '@/hooks/useDebounce'
 import type { AppDispatch } from '@/app/store'
 
@@ -27,9 +28,16 @@ export default function Header() {
     : reduxCartCount
   const theme = useSelector(selectTheme)
 
+  // Real categories from the DB, driving the nav links — the old hardcoded
+  // list (GPUs/CPUs/Storage/Deals) didn't match what's actually seeded, so
+  // most category links 404'd with "product not found".
+  const { data: categoriesData } = useGetCategoriesQuery({})
+  const navCategories = categoriesData?.data?.categories || []
+
   const [ searchVal, setSearchVal ] = useState('')
   const [ searchFocused, setSearchFocused ] = useState(false)
   const [ userMenuOpen, setUserMenuOpen ] = useState(false)
+  const [ logoutUser ] = useLogoutUserMutation()
 
   const debouncedSearch = useDebounce(searchVal, 400)
 
@@ -52,8 +60,8 @@ export default function Header() {
     }}>
       <div className="container" style={{ height: '100%', display: 'flex', alignItems: 'center', gap: 16 }}>
 
-        {/* Hamburger */}
-        <button onClick={() => dispatch(openMobileMenu())} style={iconBtn}>☰</button>
+        {/* Hamburger — mobile only, opens the mobile menu (nav links live there on small screens) */}
+        <button className="mobile-only" onClick={() => dispatch(openMobileMenu())} style={iconBtn}>☰</button>
 
         {/* Logo */}
         <Link to={ROUTES.HOME} style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none', flexShrink: 0 }}>
@@ -63,27 +71,27 @@ export default function Header() {
           </span>
         </Link>
 
-        {/* Nav */}
-        <nav style={{ display: 'flex', gap: 2 }}>
-          {NAV_LINKS.map(link => {
-            const linkPath = `${ROUTES.CATALOG}/${link.toLowerCase()}`
+        {/* Nav — hidden on mobile; links live in the hamburger menu instead */}
+        <nav className="desktop-only" style={{ display: 'flex', gap: 2 }}>
+          {navCategories.map((cat: any) => {
+            const linkPath = `${ROUTES.CATALOG}/${cat.slug}`
             const isActive = location.pathname.toLowerCase() === linkPath.toLowerCase()
             return (
-              <Link key={link} to={linkPath} style={{
+              <Link key={cat._id} to={linkPath} style={{
                 color: isActive ? 'var(--accent)' : 'var(--text-sub)',
                 fontFamily: 'var(--font-sans)', fontSize: 13, fontWeight: isActive ? 700 : 400,
                 padding: '6px 10px', borderRadius: 'var(--radius-sm)', textDecoration: 'none',
                 background: isActive ? 'var(--accent-dim)' : 'transparent',
                 transition: 'color 0.15s, background 0.15s',
               }}>
-                {link}
+                {cat.name}
               </Link>
             )
           })}
         </nav>
 
-        {/* Search */}
-        <form onSubmit={handleSearch} style={{
+        {/* Search — full bar on desktop */}
+        <form onSubmit={handleSearch} className="desktop-only" style={{
           flex: 1, maxWidth: 380, marginLeft: 'auto', position: 'relative',
           border: `1px solid ${searchFocused ? 'var(--accent)' : 'var(--border)'}`,
           borderRadius: 'var(--radius-md)', overflow: 'hidden', transition: 'border-color 0.2s',
@@ -95,7 +103,7 @@ export default function Header() {
             onChange={e => setSearchVal(e.target.value)}
             onFocus={() => setSearchFocused(true)}
             onBlur={() => setSearchFocused(false)}
-            placeholder="Search GPUs, laptops, peripherals…"
+            placeholder="Search products…"
             style={{
               width: '100%', padding: '9px 12px 9px 36px',
               background: 'var(--bg-card)', border: 'none',
@@ -103,6 +111,15 @@ export default function Header() {
             }}
           />
         </form>
+
+        {/* Search — icon only on mobile, opens the catalog search */}
+        <Link
+          to={ROUTES.CATALOG}
+          className="mobile-only"
+          style={{ ...iconBtn, marginLeft: 'auto', textDecoration: 'none', alignItems: 'center', justifyContent: 'center' }}
+        >
+          🔍
+        </Link>
 
         {/* Theme Toggle */}
         <button
@@ -173,7 +190,7 @@ export default function Header() {
                       </Link>
                     )}
                     <button
-                      onClick={() => { dispatch(logout()); setUserMenuOpen(false) }}
+                      onClick={() => { logoutUser(undefined); setUserMenuOpen(false) }}
                       style={{ display: 'block', width: '100%', padding: '12px 16px', color: 'var(--danger)', fontFamily: 'var(--font-sans)', fontSize: 13, textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer' }}
                     >
                       🚪 Sign Out

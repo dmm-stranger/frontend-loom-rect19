@@ -78,3 +78,37 @@ body {
   margin-inline:  auto;
   padding-inline: 28px;
 }
+
+/* ── Responsive utilities ── */
+/* Elements shown only on desktop (>768px) — e.g. header nav links, search bar */
+.desktop-only {
+  display: flex;
+}
+
+/* Elements shown only on mobile (<=768px) — e.g. hamburger menu button */
+.mobile-only {
+  display: none;
+}
+
+/* Two-column layouts (Cart, Checkout summary panels) that must stack on small screens */
+.stack-on-mobile {
+  display: grid;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding-inline: 16px;
+  }
+
+  .desktop-only {
+    display: none !important;
+  }
+
+  .mobile-only {
+    display: flex !important;
+  }
+
+  .stack-on-mobile {
+    grid-template-columns: 1fr !important;
+  }
+}

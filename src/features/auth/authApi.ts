@@ -51,8 +51,14 @@ export const authApi = baseApi.injectEndpoints({
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         try {
           await queryFulfilled
+        } catch {
+          // Even if the network call fails, clear the local session so the
+          // user isn't stuck "logged in" on this device. The httpOnly cookie
+          // may persist on the server until it naturally expires, but the
+          // client no longer treats itself as authenticated.
+        } finally {
           dispatch(logout())
-        } catch { }
+        }
       },
     }),
 

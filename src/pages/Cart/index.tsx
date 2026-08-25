@@ -77,7 +77,7 @@ export default function CartPage() {
         </span>
       </h1>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 28, alignItems: 'flex-start' }}>
+      <div className="stack-on-mobile" style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 28, alignItems: 'flex-start' }}>
 
         {/* ── Cart Items ── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>

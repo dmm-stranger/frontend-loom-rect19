@@ -157,7 +157,7 @@ export default function CheckoutPage() {
       {/* ════════════════ STEP 1: SHIPPING ════════════════ */}
       {
         step === 'shipping' && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 28, alignItems: 'flex-start' }}>
+          <div className="stack-on-mobile" style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 28, alignItems: 'flex-start' }}>
             <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: 28 }}>
               <h2 style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: 17, color: 'var(--text)', marginBottom: 24 }}>Shipping Address</h2>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>

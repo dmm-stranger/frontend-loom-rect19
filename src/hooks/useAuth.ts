@@ -2,21 +2,24 @@
 // @ts-nocheck
 
 
-import { useSelector, useDispatch } from 'react-redux'
-import { logout, selectCurrentUser, selectIsAuth, selectAuthStatus } from '../features/auth/authSlice'
-import type { AppDispatch } from '../app/store'
+import { useSelector } from 'react-redux'
+import { selectCurrentUser, selectIsAuth, selectAuthStatus } from '../features/auth/authSlice'
+import { useLogoutUserMutation } from '../features/auth/authApi'
 
 export function useAuth() {
-  const dispatch = useDispatch<AppDispatch>()
   const user = useSelector(selectCurrentUser)
   const isAuth = useSelector(selectIsAuth)
   const status = useSelector(selectAuthStatus)
+  const [ logoutUser ] = useLogoutUserMutation()
 
   return {
     user,
     isAuth,
     status,
     isLoading: status === 'loading',
-    signOut: () => dispatch(logout()),
+    // Calls POST /auth/logout so the server clears its httpOnly cookie too —
+    // dispatching the local `logout` reducer alone left the cookie alive,
+    // which silently re-authenticated the user on the next page refresh.
+    signOut: () => logoutUser(undefined),
   }
 }

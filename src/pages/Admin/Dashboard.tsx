@@ -74,7 +74,7 @@ export default function AdminDashboard() {
         <StatCard icon="🖥️" title="Total Products" value={String(stats?.totalProducts ?? 0)} />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 16 }}>
+      <div className="stack-on-mobile" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 16 }}>
         {/* ── Revenue by month bar chart ── */}
         <div style={card}>
           <span style={label}>Revenue — Last 6 Months</span>
