@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { openCartDrawer, openMobileMenu, toggleTheme, selectTheme } from '@/features/ui/uiSlice'
 import { selectCartCount } from '@/features/cart/cartSlice'
@@ -14,6 +14,7 @@ import type { AppDispatch } from '@/app/store'
 export default function Header() {
   const dispatch = useDispatch<AppDispatch>()
   const navigate = useNavigate()
+  const location = useLocation()
 
   const reduxCartCount = useSelector(selectCartCount)
   const isAuth = useSelector(selectIsAuth)
@@ -64,14 +65,21 @@ export default function Header() {
 
         {/* Nav */}
         <nav style={{ display: 'flex', gap: 2 }}>
-          {NAV_LINKS.map(link => (
-            <Link key={link} to={`${ROUTES.CATALOG}?category=${link.toLowerCase()}`} style={{
-              color: 'var(--text-sub)', fontFamily: 'var(--font-sans)', fontSize: 13,
-              padding: '6px 10px', borderRadius: 'var(--radius-sm)', textDecoration: 'none',
-            }}>
-              {link}
-            </Link>
-          ))}
+          {NAV_LINKS.map(link => {
+            const linkPath = `${ROUTES.CATALOG}/${link.toLowerCase()}`
+            const isActive = location.pathname.toLowerCase() === linkPath.toLowerCase()
+            return (
+              <Link key={link} to={linkPath} style={{
+                color: isActive ? 'var(--accent)' : 'var(--text-sub)',
+                fontFamily: 'var(--font-sans)', fontSize: 13, fontWeight: isActive ? 700 : 400,
+                padding: '6px 10px', borderRadius: 'var(--radius-sm)', textDecoration: 'none',
+                background: isActive ? 'var(--accent-dim)' : 'transparent',
+                transition: 'color 0.15s, background 0.15s',
+              }}>
+                {link}
+              </Link>
+            )
+          })}
         </nav>
 
         {/* Search */}

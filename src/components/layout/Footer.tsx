@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { ROUTES } from '@/constants/routes'
 
 const COLS = [
-  { title: 'Shop', links: [ { label: 'Laptops', to: '/catalog?category=laptops' }, { label: 'GPUs', to: '/catalog?category=gpus' }, { label: 'Monitors', to: '/catalog?category=monitors' }, { label: 'Peripherals', to: '/catalog?category=peripherals' } ] },
+  { title: 'Shop', links: [ { label: 'Laptops', to: '/catalog/laptops' }, { label: 'GPUs', to: '/catalog/gpus' }, { label: 'Monitors', to: '/catalog/monitors' }, { label: 'Peripherals', to: '/catalog/peripherals' } ] },
   { title: 'Support', links: [ { label: 'Track Order', to: ROUTES.ACCOUNT }, { label: 'Returns', to: '#' }, { label: 'Warranty', to: '#' }, { label: 'Contact', to: '#' } ] },
   { title: 'Company', links: [ { label: 'About', to: '#' }, { label: 'Blog', to: '#' }, { label: 'Careers', to: '#' }, { label: 'Partners', to: '#' } ] },
 ]
